@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum BusinessType: string
 {
+    case PARIWISATA = 'pariwisata';
     case TOKO = 'toko';
     case WARUNG = 'warung';
     case RESTORAN = 'restoran';
@@ -42,6 +43,7 @@ enum BusinessType: string
             self::OTOMOTIF => 'Otomotif',
             self::KONSTRUKSI => 'Konstruksi',
             self::TRANSPORTASI => 'Transportasi',
+            self::PARIWISATA => 'Pariwisata',
             self::LAINNYA => 'Lainnya',
         };
     }
@@ -67,6 +69,7 @@ enum BusinessType: string
             self::OTOMOTIF => 'Usaha di bidang kendaraan bermotor',
             self::KONSTRUKSI => 'Usaha jasa konstruksi bangunan',
             self::TRANSPORTASI => 'Usaha jasa angkutan dan transportasi',
+            self::PARIWISATA => 'Usaha pariwisata',
             self::LAINNYA => 'Usaha lainnya yang tidak termasuk dalam kategori di atas',
         };
     }
@@ -92,6 +95,7 @@ enum BusinessType: string
             self::OTOMOTIF => '🚗',
             self::KONSTRUKSI => '🏗️',
             self::TRANSPORTASI => '🚚',
+            self::PARIWISATA => '🎡',
             self::LAINNYA => '🏢',
         };
     }
@@ -157,6 +161,7 @@ enum BusinessType: string
             self::OTOMOTIF => ['Bengkel Motor', 'Bengkel Mobil', 'Cuci Mobil', 'Toko Sparepart'],
             self::KONSTRUKSI => ['Kontraktor', 'Toko Bangunan', 'Jasa Renovasi', 'Tukang Bangunan'],
             self::TRANSPORTASI => ['Angkutan Desa', 'Ojek Online', 'Rental Mobil', 'Jasa Pengiriman'],
+            self::PARIWISATA => ['Roller coaster'],
             self::LAINNYA => ['Usaha Lainnya', 'Bidang Usaha Tidak Tercantum'],
         };
     }
@@ -168,7 +173,7 @@ enum BusinessType: string
     {
         return match ($this) {
             self::TOKO, self::WARUNG, self::RESTORAN, self::KAFE => 'Perdagangan & Kuliner',
-            self::JASA, self::KONSTRUKSI, self::TRANSPORTASI => 'Jasa',
+            self::JASA, self::KONSTRUKSI, self::TRANSPORTASI, self::PARIWISATA => 'Jasa',
             self::INDUSTRI, self::KERAJINAN, self::FASHION => 'Produksi & Manufaktur',
             self::PERTANIAN, self::PETERNAKAN, self::PERIKANAN => 'Agribisnis',
             self::ELEKTRONIK, self::OTOMOTIF => 'Teknologi & Otomotif',

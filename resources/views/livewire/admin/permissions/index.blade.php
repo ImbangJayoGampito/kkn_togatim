@@ -5,9 +5,7 @@ use Mary\Traits\Toast;
 use Livewire\Attributes\Title;
 use Spatie\Permission\Models\Permission;
 
-new
-#[Title('Permission Management')]
-class extends Component {
+new #[Title('Permission Management')] class extends Component {
     use Toast;
 
     public string $search = '';
@@ -34,11 +32,7 @@ class extends Component {
 
     public function headers(): array
     {
-        return [
-            ['key' => 'id', 'label' => '#', 'class' => 'w-1'],
-            ['key' => 'name', 'label' => 'Name', 'sortable' => true],
-            ['key' => 'actions', 'label' => 'Actions', 'class' => 'w-1', 'sortable' => false],
-        ];
+        return [['key' => 'id', 'label' => '#', 'class' => 'w-1'], ['key' => 'name', 'label' => 'Name', 'sortable' => true], ['key' => 'actions', 'label' => 'Actions', 'class' => 'w-1', 'sortable' => false]];
     }
 
     public function permissions()
@@ -126,15 +120,8 @@ class extends Component {
 
     <!-- TABLE -->
     <x-card>
-        <x-table
-            :headers="$headers"
-            :rows="$permissions"
-            :sort-by="$sortBy"
-            striped
-            with-pagination
-            per-page="perPage"
-            :per-page-values="[5, 10, 15, 25, 50]"
-        >
+        <x-table :headers="$headers" :rows="$permissions" :sort-by="$sortBy" striped with-pagination per-page="perPage"
+            :per-page-values="[5, 10, 15, 25, 50]">
             @scope('actions', $permission)
                 <div class="flex gap-1">
                     <x-button icon="o-pencil" class="btn-ghost btn-sm" @click="$wire.edit({{ $permission->id }})" />
@@ -147,7 +134,8 @@ class extends Component {
     </x-card>
 
     <!-- DRAWER FORM -->
-    <x-drawer wire:model="drawer" title="{{ $editing_id ? 'Edit Permission' : 'Create Permission' }}" right separator with-close-button>
+    <x-drawer wire:model="drawer" title="{{ $editing_id ? 'Edit Permission' : 'Create Permission' }}" right separator
+        with-close-button>
         <x-form wire:submit="save">
             <x-input label="Name" wire:model="name" />
 

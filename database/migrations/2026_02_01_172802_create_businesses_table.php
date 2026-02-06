@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('latitude', 10, 7)->nullable();
             $table->string('name');
             $table->string('address')->nullable();
+            $table->string('description')->nullable();
             $table->string('phone', 50)->nullable();
             $table->enum('type', BusinessType::all())
                 ->default(BusinessType::LAINNYA);

@@ -117,7 +117,7 @@ new #[Layout('components.layouts.app')] #[Title('Dashboard')] class extends Comp
 
     public function editProduct($productId)
     {
-        return redirect()->route('products.edit', ['id' => (int) $productId]);
+        return redirect()->route('products.show', ['id' => (int) $productId, 'mode' => 'edit']);
     }
 };
 ?>
@@ -274,8 +274,8 @@ new #[Layout('components.layouts.app')] #[Title('Dashboard')] class extends Comp
                             <!-- Product Image -->
                             <div class="relative h-48 overflow-hidden">
                                 @if ($product->images->isNotEmpty())
-                                    <img src="{{ asset($product->images->first()->image_url) }}"
-                                        alt="{{ $product->name }}" class="w-full h-full object-cover" />
+                                    <img src="{{ asset($product->images->first()->path) }}" alt="{{ $product->name }}"
+                                        class="w-full h-full object-cover" />
                                 @else
                                     <div class="w-full h-full flex items-center justify-center bg-base-200">
                                         <x-icon name="o-shopping-bag" class="w-16 h-16" />
@@ -337,8 +337,10 @@ new #[Layout('components.layouts.app')] #[Title('Dashboard')] class extends Comp
                         <x-button label="Tambah Produk" link="{{ route('business.index') }}" class="btn-primary"
                             icon="o-plus" />
                     @else
-                        <x-button label="Tambah UMKM Dulu" link="{{ route('business.add') }}" class="btn-primary"
-                            icon="o-building-storefront" />
+                        @if (auth()->user() && auth()->user()->hasRole('admin'))
+                            <x-button label="Tambah UMKM Dulu" link="{{ route('business.create') }}"
+                                class="btn-primary" icon="o-building-storefront" />
+                        @endif
                     @endif
                 </div>
             @endif

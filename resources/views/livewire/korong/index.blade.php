@@ -248,7 +248,7 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
                         <div class="relative">
                             <!-- Image Display -->
                             <div class="flex items-center justify-center w-full h-96 rounded-lg overflow-hidden ">
-                                <img src="{{ asset($korong['images'][$currentImageIndexes[$korong['id']]]['url']) }}"
+                                <img src="{{ asset($korong['images'][$currentImageIndexes[$korong['id']]]['path']) }}"
                                     alt="Korong Image {{ $currentImageIndexes[$korong['id']] + 1 }}"
                                     class="max-w-full max-h-full object-contain">
                             </div>

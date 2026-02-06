@@ -17,10 +17,15 @@ use Illuminate\Support\Facades\Storage;
 new #[Layout('components.layouts.app')] #[Title('Business Management')] class extends Component {
     use WithFileUploads, Toast;
 
-    public ?Business $business = null;
-    public bool $isOwner = false;
+    public function isOwner()
+    {
+        if (!auth()->user()) {
+            return false;
+        }
+        return auth()->user()->id === $this->business->user_id || auth()->user()->hasRole('admin');
+    }
     public string $mode = 'view';
-
+    public ?Business $business = null;
     // Statistics
     public int $totalProducts = 0;
     public float $totalRevenue = 0.0;
@@ -36,7 +41,7 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
     public $latitude;
     public $user_id;
     public $korong_id;
-
+    public $description;
     // Image upload
     public $imagesToUpload = [];
     public $imageLimit = 5;
@@ -52,6 +57,7 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
         'user_id' => 'required|exists:users,id',
         'korong_id' => 'nullable|exists:korongs,id',
         'imagesToUpload.*' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
+        'description' => 'nullable|string',
     ];
     public function viewProduct($id)
     {
@@ -80,7 +86,7 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
 
     public function deleteProduct(int $id)
     {
-        if (!$this->isOwner) {
+        if (!$this->isOwner()) {
             $this->error('Anda tidak memiliki izin untuk menghapus produk ini');
             return;
         }
@@ -115,8 +121,8 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
 
         $this->loadStatistics();
 
-        if (auth()->check()) {
-            $this->isOwner = auth()->id() === $this->business->user_id || auth()->user()->hasRole('admin');
+        if (!$this->isOwner()) {
+            return;
         }
 
         // Set form values
@@ -128,6 +134,7 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
         $this->latitude = $this->business->latitude;
         $this->user_id = $this->business->user_id;
         $this->korong_id = $this->business->korong_id;
+        $this->description = $this->business->description;
         $this->mode = $mode;
         $this->availableProducts = $this->business->products;
     }
@@ -157,7 +164,7 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
      */
     public function switchMode()
     {
-        if ($this->isOwner) {
+        if ($this->isOwner()) {
             $this->mode = $this->mode === 'view' ? 'edit' : 'view';
         }
     }
@@ -203,7 +210,7 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
      */
     public function removeExistingImage($id)
     {
-        if (!$this->isOwner) {
+        if (!$this->isOwner()) {
             $this->error('Anda tidak memiliki izin untuk menghapus gambar ini');
             return;
         }
@@ -243,7 +250,7 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
      */
     public function update()
     {
-        if (!$this->isOwner) {
+        if (!$this->isOwner()) {
             $this->error('Anda tidak memiliki izin untuk mengubah data UMKM ini');
             return;
         }
@@ -266,6 +273,7 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
                     'latitude' => $this->latitude,
                     'user_id' => $updated_user_id,
                     'korong_id' => $this->korong_id,
+                    'description' => $this->description,
                 ]);
 
                 // Upload new images
@@ -327,33 +335,35 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
      * Carousel Section
      */
 
+    // CAROUSEL FUNCTIONALITY
     public $currentImageIndex = 0;
 
     public function previousImage()
     {
-        if ($this->currentImageIndex > 0) {
-            $this->currentImageIndex--;
-        } else {
-            $this->currentImageIndex = $this->business->images->count() - 1;
-        }
+        $this->currentImageIndex = $this->integerWrapping($this->currentImageIndex - 1, $this->product->images->count() - 1);
     }
 
     public function nextImage()
     {
-        if ($this->currentImageIndex < $this->business->images->count() - 1) {
-            $this->currentImageIndex++;
-        } else {
-            $this->currentImageIndex = 0;
-        }
+        $this->currentImageIndex = $this->integerWrapping($this->currentImageIndex + 1, $this->product->images->count() - 1);
     }
-
+    public function integerWrapping(int $index, int $maxLen)
+    {
+        if ($index < 0) {
+            $index = $maxLen;
+        } elseif ($index >= $maxLen) {
+            $index = 0;
+        }
+        return $index;
+    }
     public function goToImage($index)
     {
-        $this->currentImageIndex = $index;
+        $this->integerWrapping($index, $this->product->images->count() - 1);
     }
+
     public function createProduct($id)
     {
-        if (!$this->isOwner) {
+        if (!$this->isOwner()) {
             $this->error('Anda tidak memiliki bisnis ini!');
         }
         return redirect()->route('products.add', ['id' => $id]);
@@ -363,7 +373,7 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
 
 <div>
     <x-card shadow separator class="mb-6">
-        @if ($this->isOwner && $this->mode === 'view')
+        @if ($this->isOwner() && $this->mode === 'view')
             <x-slot:menu>
                 <x-button icon="o-pencil" wire:click="switchMode" spinner class="btn-primary" label="Edit" />
                 <x-button icon="o-plus" wire:click="createProduct({{ $this->business->id }})" spinner
@@ -430,7 +440,18 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
                             <x-badge value="Korong" class="badge-ghost" />
                             <p class="mt-1">{{ $business->korong->name ?? 'Tidak terdaftar' }}</p>
                         </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-4">
+                                <x-badge value="Deskripsi" class="badge-ghost" />
+                                <x-icon name="o-document-text" class="w-5 h-5 text-base-content/50" />
+                            </div>
 
+                            <div class="prose prose-sm max-w-none">
+                                <p class="text-base-content/80">
+                                    {{ $this->business->description }}
+                                </p>
+                            </div>
+                        </div>
                         <div>
                             <x-badge value="Koordinat" class="badge-ghost" />
                             <p class="mt-1">
@@ -456,7 +477,7 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
                                         alt="Business Image {{ $currentImageIndex + 1 }}"
                                         class="max-w-full max-h-full object-contain">
 
-                                    @if ($isOwner)
+                                    @if ($this->isOwner())
                                         <div class="absolute top-4 right-4">
                                             <x-button icon="o-trash"
                                                 wire:click="removeExistingImage({{ $business->images[$currentImageIndex]->id }})"
@@ -556,8 +577,9 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
                                                 class="btn-ghost btn-sm flex-1" icon="o-eye" />
 
 
-                                            @if ($this->isOwner)
-                                                <x-button label="Edit" wire:click="editProduct({{ $product->id }})"
+                                            @if ($this->isOwner())
+                                                <x-button label="Edit"
+                                                    wire:click="editProduct({{ $product->id }})"
                                                     class="btn-ghost btn-sm flex-1" icon="o-pencil" />
 
                                                 <x-button label="Hapus"
@@ -629,6 +651,9 @@ new #[Layout('components.layouts.app')] #[Title('Business Management')] class ex
 
                         <x-select required label="Korong" wire:model="korong_id" :options="$this->availableKorongs"
                             option-label="name" option-value="id" placeholder="Pilih Korong" />
+
+                        <x-textarea label="Deskripsi" wire:model="description" rows="4"
+                            placeholder="Masukkan deskripsi product" class="textarea-bordered" inline />
                     </div>
                 </x-card>
 

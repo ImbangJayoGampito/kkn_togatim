@@ -18,7 +18,8 @@ class Business extends Model
         'longitude',
         'latitude',
         'user_id',
-        'korong_id'
+        'korong_id',
+        'description'
     ];
     protected $casts = [
         'type' => BusinessType::class,

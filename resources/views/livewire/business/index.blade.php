@@ -213,8 +213,7 @@ new #[Layout('components.layouts.app')] #[Title('Cari UMKM')] class extends Comp
                         <!-- Business Image -->
                         <div class="relative h-48 overflow-hidden">
                             @if ($business->images->isNotEmpty())
-                                <img src="{{ Storage::url($business->images->first()->path) }}"
-                                    alt="{{ $business->name }}"
+                                <img src="{{ asset($business->images->first()->path) }}" alt="{{ $business->name }}"
                                     class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
                             @else
                                 <div class="w-full h-full flex items-center justify-center bg-base-200">

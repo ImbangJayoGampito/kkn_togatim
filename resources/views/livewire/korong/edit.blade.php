@@ -114,7 +114,13 @@ new #[Layout('components.layouts.app')] #[Title('Edit Korong')] class extends Co
     {
         // Validate first
         $this->validate();
-
+        if (auth()->user()) {
+            $this->error('Anda tidak diautentikasi!');
+            return;
+        }
+        if (auth()->user()->hasRole('admin')) {
+            $this->error('Anda bukan admin sistem!');
+        }
         try {
             DB::beginTransaction();
 
@@ -359,7 +365,7 @@ new #[Layout('components.layouts.app')] #[Title('Edit Korong')] class extends Co
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         @foreach ($existingImages as $image)
                             <div class="relative">
-                                <img src="{{ $image['url'] }}" alt="Gambar Korong"
+                                <img src="{{ $image['path'] }}" alt="Gambar Korong"
                                     class="w-full h-32 object-cover rounded-lg border">
                                 <div class="absolute top-2 right-2 ">
                                     <x-button icon="o-trash" class="bg-black"

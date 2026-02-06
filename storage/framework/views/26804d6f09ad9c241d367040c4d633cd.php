@@ -527,8 +527,8 @@ use Illuminate\Support\Facades\Storage;
                             <!-- Product Image -->
                             <div class="relative h-48 overflow-hidden">
                                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($product->images->isNotEmpty()): ?>
-                                    <img src="<?php echo e(asset($product->images->first()->image_url)); ?>"
-                                        alt="<?php echo e($product->name); ?>" class="w-full h-full object-cover" />
+                                    <img src="<?php echo e(asset($product->images->first()->path)); ?>" alt="<?php echo e($product->name); ?>"
+                                        class="w-full h-full object-cover" />
                                 <?php else: ?>
                                     <div class="w-full h-full flex items-center justify-center bg-base-200">
                                         <?php if (isset($component)) { $__componentOriginalce0070e6ae017cca68172d0230e44821 = $component; } ?>
@@ -712,9 +712,10 @@ use Illuminate\Support\Facades\Storage;
 <?php unset($__componentOriginal602b228a887fab12f0012a3179e5b533); ?>
 <?php endif; ?>
                     <?php else: ?>
-                        <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
+                        <?php if(auth()->user() && auth()->user()->hasRole('admin')): ?>
+                            <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
-<?php $component = Mary\View\Components\Button::resolve(['label' => 'Tambah UMKM Dulu','link' => ''.e(route('business.add')).'','icon' => 'o-building-storefront'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Mary\View\Components\Button::resolve(['label' => 'Tambah UMKM Dulu','link' => ''.e(route('business.create')).'','icon' => 'o-building-storefront'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('button'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
@@ -732,6 +733,7 @@ use Illuminate\Support\Facades\Storage;
 <?php $component = $__componentOriginal602b228a887fab12f0012a3179e5b533; ?>
 <?php unset($__componentOriginal602b228a887fab12f0012a3179e5b533); ?>
 <?php endif; ?>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>

@@ -11,7 +11,8 @@ class ProductTransaction extends Model
         'user_id',
         'product_id',
         'quantity',
-        'product_name'
+        'product_name',
+        'price',
     ];
 
     public function user(): BelongsTo

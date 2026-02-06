@@ -2,7 +2,9 @@
 
 use Livewire\Volt\Component;
 use App\Models\Product;
+use App\Models\ProductTransaction;
 use App\Models\Image;
+use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\WithFileUploads;
@@ -24,7 +26,7 @@ use Illuminate\Support\Facades\Storage;
 <?php $attributes = $attributes->except(\Mary\View\Components\Card::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['class' => 'mb-6']); ?>
-        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($this->isOwner): ?>
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($this->isOwner()): ?>
              <?php $__env->slot('menu', null, []); ?> 
                 <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
@@ -156,7 +158,7 @@ use Illuminate\Support\Facades\Storage;
                 <div>
                     <p class="text-sm text-gray-500">Stok Saat Ini</p>
                     <p class="text-2xl font-bold flex items-center gap-2">
-                        <?php echo e(number_format($product->stock, 0, ',', '.')); ?>
+                        <?php echo e(number_format($this->product->stock ?? 0, 0, ',', '.')); ?>
 
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($stokRendah): ?>
                             <?php if (isset($component)) { $__componentOriginal4f015fb6508e425790bdb8f79792e6ed = $component; } ?>
@@ -185,17 +187,68 @@ use Illuminate\Support\Facades\Storage;
 
                 <div>
                     <p class="text-sm ">Harga</p>
-                    <p class="text-2xl font-bold">Rp <?php echo e(number_format($product->price, 0, ',', '.')); ?></p>
+                    <p class="text-2xl font-bold">Rp <?php echo e(number_format($product->price ?? 0, 0, ',', '.')); ?></p>
                 </div>
 
                 <div>
                     <p class="text-sm ">Total Transaksi</p>
-                    <p class="text-2xl font-bold"><?php echo e(number_format($totalTransaksi, 0, ',', '.')); ?></p>
+                    <p class="text-2xl font-bold"><?php echo e(number_format($totalTransaksi ?? 0, 0, ',', '.')); ?></p>
                 </div>
 
                 <div>
                     <p class="text-sm ">Total Pendapatan</p>
-                    <p class="text-2xl font-bold">Rp <?php echo e(number_format($totalPendapatan, 0, ',', '.')); ?></p>
+                    <p class="text-2xl font-bold">Rp <?php echo e(number_format($totalPendapatan ?? 0, 0, ',', '.')); ?></p>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <?php if (isset($component)) { $__componentOriginal4f015fb6508e425790bdb8f79792e6ed = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal4f015fb6508e425790bdb8f79792e6ed = $attributes; } ?>
+<?php $component = Mary\View\Components\Badge::resolve(['value' => 'Deskripsi'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('badge'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Badge::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['class' => 'badge-ghost']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal4f015fb6508e425790bdb8f79792e6ed)): ?>
+<?php $attributes = $__attributesOriginal4f015fb6508e425790bdb8f79792e6ed; ?>
+<?php unset($__attributesOriginal4f015fb6508e425790bdb8f79792e6ed); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal4f015fb6508e425790bdb8f79792e6ed)): ?>
+<?php $component = $__componentOriginal4f015fb6508e425790bdb8f79792e6ed; ?>
+<?php unset($__componentOriginal4f015fb6508e425790bdb8f79792e6ed); ?>
+<?php endif; ?>
+                        <?php if (isset($component)) { $__componentOriginalce0070e6ae017cca68172d0230e44821 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalce0070e6ae017cca68172d0230e44821 = $attributes; } ?>
+<?php $component = Mary\View\Components\Icon::resolve(['name' => 'o-document-text'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('icon'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Icon::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['class' => 'w-5 h-5 text-base-content/50']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalce0070e6ae017cca68172d0230e44821)): ?>
+<?php $attributes = $__attributesOriginalce0070e6ae017cca68172d0230e44821; ?>
+<?php unset($__attributesOriginalce0070e6ae017cca68172d0230e44821); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalce0070e6ae017cca68172d0230e44821)): ?>
+<?php $component = $__componentOriginalce0070e6ae017cca68172d0230e44821; ?>
+<?php unset($__componentOriginalce0070e6ae017cca68172d0230e44821); ?>
+<?php endif; ?>
+                    </div>
+
+                    <div class="prose prose-sm max-w-none">
+                        <p class="text-base-content/80">
+                            <?php echo e($this->product->business->description); ?>
+
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -203,7 +256,7 @@ use Illuminate\Support\Facades\Storage;
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <?php if (isset($component)) { $__componentOriginal8fc4ad737f3c40ff5ac76f434f4104b5 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal8fc4ad737f3c40ff5ac76f434f4104b5 = $attributes; } ?>
-<?php $component = Mary\View\Components\Stat::resolve(['title' => 'Transaksi 30 Hari','value' => ''.e(number_format($transaksiTerbaru, 0, ',', '.')).'','icon' => 'o-arrow-trending-up','description' => 'Terakhir 30 hari'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Mary\View\Components\Stat::resolve(['title' => 'Transaksi 30 Hari','value' => ''.e(number_format($transaksiTerbaru ?? 0, 0, ',', '.')).'','icon' => 'o-arrow-trending-up','description' => 'Terakhir 30 hari'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('stat'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
@@ -245,7 +298,7 @@ use Illuminate\Support\Facades\Storage;
 
                 <?php if (isset($component)) { $__componentOriginal8fc4ad737f3c40ff5ac76f434f4104b5 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal8fc4ad737f3c40ff5ac76f434f4104b5 = $attributes; } ?>
-<?php $component = Mary\View\Components\Stat::resolve(['title' => 'Rata-rata Pendapatan','value' => 'Rp '.e($totalTransaksi > 0 ? number_format($totalPendapatan / $totalTransaksi, 0, ',', '.') : '0').'','icon' => 'o-banknotes','description' => 'Per transaksi'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Mary\View\Components\Stat::resolve(['title' => 'Rata-rata Pendapatan','value' => 'Rp '.e($totalTransaksi > 0 ? number_format($totalPendapatan / $totalTransaksi ?? 0, 0, ',', '.') : '0').'','icon' => 'o-banknotes','description' => 'Per transaksi'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('stat'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
@@ -272,15 +325,15 @@ use Illuminate\Support\Facades\Storage;
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="bg-base-100 p-4 rounded-lg border">
                         <p class="text-sm text-gray-500">Total Transaksi</p>
-                        <p class="text-xl font-bold"><?php echo e(number_format($totalTransaksi, 0, ',', '.')); ?></p>
+                        <p class="text-xl font-bold"><?php echo e(number_format($totalTransaksi ?? 0, 0, ',', '.')); ?></p>
                     </div>
                     <div class="bg-base-100 p-4 rounded-lg border">
                         <p class="text-sm text-gray-500">Total Pendapatan</p>
-                        <p class="text-xl font-bold">Rp <?php echo e(number_format($totalPendapatan, 0, ',', '.')); ?></p>
+                        <p class="text-xl font-bold">Rp <?php echo e(number_format($totalPendapatan ?? 0, 0, ',', '.')); ?></p>
                     </div>
                     <div class="bg-base-100 p-4 rounded-lg border">
                         <p class="text-sm text-gray-500">Transaksi 30 Hari</p>
-                        <p class="text-xl font-bold"><?php echo e(number_format($transaksiTerbaru, 0, ',', '.')); ?></p>
+                        <p class="text-xl font-bold"><?php echo e(number_format($transaksiTerbaru ?? 0, 0, ',', '.')); ?></p>
                     </div>
                 </div>
             </div>
@@ -306,7 +359,7 @@ use Illuminate\Support\Facades\Storage;
                                     alt="Business Image <?php echo e($currentImageIndex + 1); ?>"
                                     class="max-w-full max-h-full object-contain">
 
-                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($isOwner): ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($this->isOwner()): ?>
                                     <div class="absolute top-4 right-4">
                                         <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
@@ -483,6 +536,174 @@ use Illuminate\Support\Facades\Storage;
 
                 </div>
             </div>
+
+            
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($this->recentTransactions->isNotEmpty()): ?>
+                <?php if (isset($component)) { $__componentOriginal7f194736b6f6432dc38786f292496c34 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal7f194736b6f6432dc38786f292496c34 = $attributes; } ?>
+<?php $component = Mary\View\Components\Card::resolve(['title' => ''.e($this->recentTransactionAmount).' Transaksi Terbaru','separator' => true,'shadow' => true] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('card'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Card::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['class' => 'mt-6']); ?>
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Tanggal</th>
+                                    <th class="text-left">Pelanggan</th>
+                                    <th class="text-left">Jumlah</th>
+                                    <th class="text-left">Harga Satuan</th>
+                                    <th class="text-left">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $this->recentTransactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr>
+                                        <td class="whitespace-nowrap">
+                                            <?php echo e($transaction->created_at->format('d/m/Y H:i')); ?>
+
+                                        </td>
+                                        <td class="whitespace-nowrap">
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($transaction->user): ?>
+                                                <div class="flex items-center gap-2">
+                                                    <?php if (isset($component)) { $__componentOriginaldee4e996545a5da8b3c30122654040cc = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginaldee4e996545a5da8b3c30122654040cc = $attributes; } ?>
+<?php $component = Mary\View\Components\Avatar::resolve(['image' => $transaction->user->profile_photo_url ?? null] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('avatar'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Avatar::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['initials' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(substr($transaction->user->name, 0, 2)),'class' => 'w-6 h-6']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginaldee4e996545a5da8b3c30122654040cc)): ?>
+<?php $attributes = $__attributesOriginaldee4e996545a5da8b3c30122654040cc; ?>
+<?php unset($__attributesOriginaldee4e996545a5da8b3c30122654040cc); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginaldee4e996545a5da8b3c30122654040cc)): ?>
+<?php $component = $__componentOriginaldee4e996545a5da8b3c30122654040cc; ?>
+<?php unset($__componentOriginaldee4e996545a5da8b3c30122654040cc); ?>
+<?php endif; ?>
+                                                    <span><?php echo e($transaction->user->name); ?></span>
+                                                </div>
+                                            <?php else: ?>
+                                                <span class="text-gray-500">Anonim</span>
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        </td>
+                                        <td class="whitespace-nowrap">
+                                            <?php echo e(number_format($transaction->quantity, 0, ',', '.')); ?> unit
+                                        </td>
+                                        <td class="whitespace-nowrap">
+                                            Rp <?php echo e(number_format($transaction->price, 0, ',', '.')); ?>
+
+                                        </td>
+                                        <td class="whitespace-nowrap font-semibold">
+                                            Rp
+                                            <?php echo e(number_format($transaction->quantity * $transaction->price, 0, ',', '.')); ?>
+
+                                        </td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            </tbody>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($this->totalTransaksi > $this->recentTransactionAmount): ?>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-sm text-gray-500 pt-4">
+                                            Menampilkan <?php echo e($this->recentTransactionAmount); ?> dari
+                                            <?php echo e(number_format($this->totalTransaksi, 0, ',', '.')); ?>
+
+                                            transaksi
+                                            <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
+<?php $component = Mary\View\Components\Button::resolve(['label' => 'Lihat Semua'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Button::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['wire:click' => '$dispatch(\'openModal\', { component: \'transactions.modal\', arguments: { productId: '.e($product->id).' } })','class' => 'btn-link btn-sm ml-2']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal602b228a887fab12f0012a3179e5b533)): ?>
+<?php $attributes = $__attributesOriginal602b228a887fab12f0012a3179e5b533; ?>
+<?php unset($__attributesOriginal602b228a887fab12f0012a3179e5b533); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal602b228a887fab12f0012a3179e5b533)): ?>
+<?php $component = $__componentOriginal602b228a887fab12f0012a3179e5b533; ?>
+<?php unset($__componentOriginal602b228a887fab12f0012a3179e5b533); ?>
+<?php endif; ?>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </table>
+                    </div>
+
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($this->totalTransaksi === 0): ?>
+                        <div class="text-center py-8">
+                            <?php if (isset($component)) { $__componentOriginalce0070e6ae017cca68172d0230e44821 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalce0070e6ae017cca68172d0230e44821 = $attributes; } ?>
+<?php $component = Mary\View\Components\Icon::resolve(['name' => 'o-receipt-percent'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('icon'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Icon::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['class' => 'w-16 h-16 text-gray-300 mx-auto mb-4']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalce0070e6ae017cca68172d0230e44821)): ?>
+<?php $attributes = $__attributesOriginalce0070e6ae017cca68172d0230e44821; ?>
+<?php unset($__attributesOriginalce0070e6ae017cca68172d0230e44821); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalce0070e6ae017cca68172d0230e44821)): ?>
+<?php $component = $__componentOriginalce0070e6ae017cca68172d0230e44821; ?>
+<?php unset($__componentOriginalce0070e6ae017cca68172d0230e44821); ?>
+<?php endif; ?>
+                            <p class="text-gray-500">Belum ada transaksi untuk produk ini</p>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($this->isOwner()): ?>
+                                <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
+<?php $component = Mary\View\Components\Button::resolve(['icon' => 'o-plus','label' => 'Buat Transaksi Pertama'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Button::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['wire:click' => 'toTransaction','class' => 'btn-primary btn-sm mt-4']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal602b228a887fab12f0012a3179e5b533)): ?>
+<?php $attributes = $__attributesOriginal602b228a887fab12f0012a3179e5b533; ?>
+<?php unset($__attributesOriginal602b228a887fab12f0012a3179e5b533); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal602b228a887fab12f0012a3179e5b533)): ?>
+<?php $component = $__componentOriginal602b228a887fab12f0012a3179e5b533; ?>
+<?php unset($__componentOriginal602b228a887fab12f0012a3179e5b533); ?>
+<?php endif; ?>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </div>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                 <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal7f194736b6f6432dc38786f292496c34)): ?>
+<?php $attributes = $__attributesOriginal7f194736b6f6432dc38786f292496c34; ?>
+<?php unset($__attributesOriginal7f194736b6f6432dc38786f292496c34); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal7f194736b6f6432dc38786f292496c34)): ?>
+<?php $component = $__componentOriginal7f194736b6f6432dc38786f292496c34; ?>
+<?php unset($__componentOriginal7f194736b6f6432dc38786f292496c34); ?>
+<?php endif; ?>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         <?php elseif($this->mode === 'edit'): ?>
             
              <?php $__env->slot('title', null, []); ?> 
@@ -544,14 +765,14 @@ use Illuminate\Support\Facades\Storage;
              <?php $__env->slot('menu', null, []); ?> 
                 <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
-<?php $component = Mary\View\Components\Button::resolve(['icon' => 'o-arrow-left','link' => ''.e(route('products.show', $product)).'','tooltipBottom' => 'Kembali ke detail'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Mary\View\Components\Button::resolve(['icon' => 'o-arrow-left','tooltipBottom' => 'Kembali ke detail'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('button'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Mary\View\Components\Button::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['class' => 'btn-ghost btn-sm']); ?>
+<?php $component->withAttributes(['wire:click' => 'cancel','class' => 'btn-ghost btn-sm']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal602b228a887fab12f0012a3179e5b533)): ?>
@@ -624,14 +845,14 @@ use Illuminate\Support\Facades\Storage;
              <?php $__env->slot('menu', null, []); ?> 
                 <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
-<?php $component = Mary\View\Components\Button::resolve(['icon' => 'o-arrow-left','link' => ''.e(route('products.show', $product)).'','tooltipBottom' => 'Kembali ke detail'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Mary\View\Components\Button::resolve(['icon' => 'o-arrow-left','tooltipBottom' => 'Kembali ke detail'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('button'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Mary\View\Components\Button::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['class' => 'btn-ghost btn-sm']); ?>
+<?php $component->withAttributes(['wire:click' => 'cancel','class' => 'btn-ghost btn-sm']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal602b228a887fab12f0012a3179e5b533)): ?>
@@ -949,6 +1170,312 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
                         <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
 <?php $component = Mary\View\Components\Button::resolve(['icon' => 'o-check','spinner' => true,'label' => 'Simpan Perubahan'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Button::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['type' => 'submit','class' => 'btn-primary']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal602b228a887fab12f0012a3179e5b533)): ?>
+<?php $attributes = $__attributesOriginal602b228a887fab12f0012a3179e5b533; ?>
+<?php unset($__attributesOriginal602b228a887fab12f0012a3179e5b533); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal602b228a887fab12f0012a3179e5b533)): ?>
+<?php $component = $__componentOriginal602b228a887fab12f0012a3179e5b533; ?>
+<?php unset($__componentOriginal602b228a887fab12f0012a3179e5b533); ?>
+<?php endif; ?>
+                    </div>
+                </div>
+            </form>
+        <?php elseif($this->mode === 'transaction'): ?>
+             <?php $__env->slot('title', null, []); ?> 
+                <div class="flex items-center gap-4">
+                    <?php
+                        $productImage = $product->images->first();
+                    ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($productImage): ?>
+                        <?php if (isset($component)) { $__componentOriginaldee4e996545a5da8b3c30122654040cc = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginaldee4e996545a5da8b3c30122654040cc = $attributes; } ?>
+<?php $component = Mary\View\Components\Avatar::resolve(['image' => ''.e($productImage->path).''] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('avatar'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Avatar::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['class' => 'w-16 h-16 rounded-lg']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginaldee4e996545a5da8b3c30122654040cc)): ?>
+<?php $attributes = $__attributesOriginaldee4e996545a5da8b3c30122654040cc; ?>
+<?php unset($__attributesOriginaldee4e996545a5da8b3c30122654040cc); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginaldee4e996545a5da8b3c30122654040cc)): ?>
+<?php $component = $__componentOriginaldee4e996545a5da8b3c30122654040cc; ?>
+<?php unset($__componentOriginaldee4e996545a5da8b3c30122654040cc); ?>
+<?php endif; ?>
+                    <?php else: ?>
+                        <?php if (isset($component)) { $__componentOriginaldee4e996545a5da8b3c30122654040cc = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginaldee4e996545a5da8b3c30122654040cc = $attributes; } ?>
+<?php $component = Mary\View\Components\Avatar::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('avatar'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Avatar::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['initials' => ''.e(substr($product->name, 0, 2)).'','class' => 'w-16 h-16 rounded-lg bg-base-200']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginaldee4e996545a5da8b3c30122654040cc)): ?>
+<?php $attributes = $__attributesOriginaldee4e996545a5da8b3c30122654040cc; ?>
+<?php unset($__attributesOriginaldee4e996545a5da8b3c30122654040cc); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginaldee4e996545a5da8b3c30122654040cc)): ?>
+<?php $component = $__componentOriginaldee4e996545a5da8b3c30122654040cc; ?>
+<?php unset($__componentOriginaldee4e996545a5da8b3c30122654040cc); ?>
+<?php endif; ?>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <div>
+                        <h2 class="text-xl font-bold">Transaksi Baru</h2>
+                        <p class="text-sm text-gray-500">Untuk produk: <?php echo e($product->name); ?></p>
+                    </div>
+                </div>
+             <?php $__env->endSlot(); ?>
+
+            <!-- Action Buttons in Menu -->
+             <?php $__env->slot('menu', null, []); ?> 
+                <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
+<?php $component = Mary\View\Components\Button::resolve(['icon' => 'o-arrow-left','tooltipBottom' => 'Kembali ke detail produk'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Button::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['wire:click' => 'cancel','class' => 'btn-ghost btn-sm']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal602b228a887fab12f0012a3179e5b533)): ?>
+<?php $attributes = $__attributesOriginal602b228a887fab12f0012a3179e5b533; ?>
+<?php unset($__attributesOriginal602b228a887fab12f0012a3179e5b533); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal602b228a887fab12f0012a3179e5b533)): ?>
+<?php $component = $__componentOriginal602b228a887fab12f0012a3179e5b533; ?>
+<?php unset($__componentOriginal602b228a887fab12f0012a3179e5b533); ?>
+<?php endif; ?>
+             <?php $__env->endSlot(); ?>
+
+            <!-- Product Summary Section -->
+            <div class="mb-8">
+                <h3 class="font-semibold mb-4 text-lg">Ringkasan Produk</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-base-100 p-4 rounded-lg border">
+                        <p class="text-sm text-gray-500">Stok Tersedia</p>
+                        <p class="text-xl font-bold"><?php echo e(number_format($stock ?? 0, 0, ',', '.')); ?> unit</p>
+                    </div>
+                    <div class="bg-base-100 p-4 rounded-lg border">
+                        <p class="text-sm text-gray-500">Harga Default</p>
+                        <p class="text-xl font-bold">Rp <?php echo e(number_format($product->price ?? 0, 0, ',', '.')); ?></p>
+                    </div>
+                    <div class="bg-base-100 p-4 rounded-lg border">
+                        <p class="text-sm text-gray-500">ID Produk</p>
+                        <p class="text-xl font-bold"><?php echo e($product->id); ?></p>
+                    </div>
+                </div>
+
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($product->description): ?>
+                    <div class="mt-4 p-3 bg-base-200 rounded-lg">
+                        <p class="text-sm text-gray-500 mb-1">Deskripsi:</p>
+                        <p><?php echo e($product->description); ?></p>
+                    </div>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+            </div>
+
+            <!-- Transaction Form -->
+            <form wire:submit="addTransaction">
+                <div class="space-y-6">
+                    <!-- Form Grid Layout -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Quantity Input -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Jumlah *</span>
+                            </label>
+                            <?php if (isset($component)) { $__componentOriginalf51438a7488970badd535e5f203e0c1b = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalf51438a7488970badd535e5f203e0c1b = $attributes; } ?>
+<?php $component = Mary\View\Components\Input::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('input'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Input::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['wire:model.live' => 'quantity','type' => 'number','min' => '1','placeholder' => 'Masukkan jumlah','class' => 'input-bordered']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalf51438a7488970badd535e5f203e0c1b)): ?>
+<?php $attributes = $__attributesOriginalf51438a7488970badd535e5f203e0c1b; ?>
+<?php unset($__attributesOriginalf51438a7488970badd535e5f203e0c1b); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalf51438a7488970badd535e5f203e0c1b)): ?>
+<?php $component = $__componentOriginalf51438a7488970badd535e5f203e0c1b; ?>
+<?php unset($__componentOriginalf51438a7488970badd535e5f203e0c1b); ?>
+<?php endif; ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($stock > 0): ?>
+                                <label class="label">
+                                    <span class="label-text-alt">Tersedia:
+                                        <?php echo e(number_format($stock ?? 0, 0, ',', '.')); ?>
+
+                                        unit</span>
+                                </label>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['quantity'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <label class="label">
+                                    <span class="label-text-alt text-error"><?php echo e($message); ?></span>
+                                </label>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </div>
+
+                        <!-- Price Input -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Harga per Unit (Rp) *</span>
+                            </label>
+                            <?php if (isset($component)) { $__componentOriginalf51438a7488970badd535e5f203e0c1b = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalf51438a7488970badd535e5f203e0c1b = $attributes; } ?>
+<?php $component = Mary\View\Components\Input::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('input'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Input::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['disabled' => true,'wire:model' => 'price','type' => 'number','min' => '0','placeholder' => 'Masukkan harga','class' => 'input-bordered']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalf51438a7488970badd535e5f203e0c1b)): ?>
+<?php $attributes = $__attributesOriginalf51438a7488970badd535e5f203e0c1b; ?>
+<?php unset($__attributesOriginalf51438a7488970badd535e5f203e0c1b); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalf51438a7488970badd535e5f203e0c1b)): ?>
+<?php $component = $__componentOriginalf51438a7488970badd535e5f203e0c1b; ?>
+<?php unset($__componentOriginalf51438a7488970badd535e5f203e0c1b); ?>
+<?php endif; ?>
+                            <label class="label">
+                                <span class="label-text-alt">Default: Rp
+                                    <?php echo e(number_format($product->price ?? 0, 0, ',', '.')); ?></span>
+                            </label>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['price'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <label class="label">
+                                    <span class="label-text-alt text-error"><?php echo e($message); ?></span>
+                                </label>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </div>
+
+                        <!-- Customer Selection -->
+                        <div class="md:col-span-2">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Pelanggan (Opsional)</span>
+                                </label>
+                                <select wire:model="user_id" class="select select-bordered w-full">
+                                    <option value="">Pilih pelanggan...</option>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $this->users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($user->id); ?>"><?php echo e($user->name); ?>
+
+                                            (<?php echo e($user->email); ?>)
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </select>
+                                <label class="label">
+                                    <span class="label-text-alt">Kosongkan untuk transaksi anonim</span>
+                                </label>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['user_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <label class="label">
+                                        <span class="label-text-alt text-error"><?php echo e($message); ?></span>
+                                    </label>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Calculation -->
+                    <div class="divider my-4"></div>
+                    <div class="bg-base-200 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-3">Ringkasan Transaksi</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Jumlah Barang</p>
+                                <p class="text-lg font-semibold"><?php echo e(number_format($quantity ?? 0, 0, ',', '.')); ?> unit
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Harga per Unit</p>
+                                <p class="text-lg font-semibold">Rp <?php echo e(number_format($price ?? 0, 0, ',', '.')); ?></p>
+                            </div>
+                            <div class="col-span-2 pt-3 border-t">
+                                <div class="flex justify-between items-center">
+                                    <p class="text-lg font-semibold">Total</p>
+                                    <p class="text-2xl font-bold text-primary">
+                                        Rp <?php echo e(number_format($this->quantity * $this->price ?? 0, 0, ',', '.')); ?>
+
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end gap-3 pt-6 border-t">
+                        <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
+<?php $component = Mary\View\Components\Button::resolve(['label' => 'Batal'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Mary\View\Components\Button::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['type' => 'button','wire:click' => 'cancel','class' => 'btn-ghost']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal602b228a887fab12f0012a3179e5b533)): ?>
+<?php $attributes = $__attributesOriginal602b228a887fab12f0012a3179e5b533; ?>
+<?php unset($__attributesOriginal602b228a887fab12f0012a3179e5b533); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal602b228a887fab12f0012a3179e5b533)): ?>
+<?php $component = $__componentOriginal602b228a887fab12f0012a3179e5b533; ?>
+<?php unset($__componentOriginal602b228a887fab12f0012a3179e5b533); ?>
+<?php endif; ?>
+                        <?php if (isset($component)) { $__componentOriginal602b228a887fab12f0012a3179e5b533 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal602b228a887fab12f0012a3179e5b533 = $attributes; } ?>
+<?php $component = Mary\View\Components\Button::resolve(['icon' => 'o-check','spinner' => true,'label' => 'Simpan Transaksi'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('button'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>

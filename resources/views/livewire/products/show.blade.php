@@ -2,7 +2,9 @@
 declare(strict_types=1);
 use Livewire\Volt\Component;
 use App\Models\Product;
+use App\Models\ProductTransaction;
 use App\Models\Image;
+use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\WithFileUploads;
@@ -16,9 +18,16 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
     public $transaksiTerbaru = null;
     public int $totalPendapatan;
     public int $imageLimit = 10;
+    public int $recentTransactionAmount = 20;
     public bool $stokRendah = false;
+    public function isOwner()
+    {
+        if (!auth()->user()) {
+            return false;
+        }
+        return auth()->user()->id === $this->product->business->user_id || auth()->user()->hasRole('admin');
+    }
 
-    public bool $isOwner = false;
     public string $mode = 'view';
     public array $allowedModes = ['view', 'edit', 'transaction'];
     public array $imagesToUpload = [];
@@ -47,7 +56,7 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
     public $transactions = null;
     public function toTransaction()
     {
-        if (!$this->isOwner) {
+        if (!$this->isOwner()) {
             return;
         }
         $this->mode = 'transaction';
@@ -67,6 +76,10 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
             // $this->dispatch('notify', title: 'Error', description: 'Failed to remove image: ' . $e->getMessage(), icon: 'o-x-circle', iconColor: 'text-error');
             $this->error('Gagal menghapus gambar karena ' . $e->getMessage());
         }
+    }
+    public function cancel()
+    {
+        $this->mode = 'view';
     }
     public function update()
     {
@@ -141,7 +154,6 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
     ];
     public $name;
     public $description;
-    public $price;
     public $stock;
     public $business_id;
     public $is_active;
@@ -178,17 +190,12 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
             'business.user', // Include business owner relationship
             'images',
             'transactions' => function ($query) {
-                $query->latest()->limit(10); // Limit transactions for performance
+                $query->latest()->limit($this->recentTransactionAmount); // Limit transactions for performance
             },
         ])->findOrFail($id);
 
         $this->loadStatistics();
-        if (!auth()->check()) {
-            $this->isOwner = false;
-            return;
-        }
 
-        $this->isOwner = auth()->user()->id === $this->product->business->user_id || auth()->user()->hasRole('admin');
         $this->name = $this->product->name;
 
         $this->description = $this->product->description;
@@ -197,17 +204,26 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
         $this->business_id = $this->product->business_id;
         $this->is_active = $this->product->is_active;
         $this->mode = $mode;
+        $this->users = User::all();
+        $this->recentTransactions = $this->product->transactions()->with('user')->latest()->take($this->recentTransactionAmount)->get();
     }
     public function switchMode()
     {
-        if ($this->isOwner) {
+        if ($this->isOwner()) {
             $this->mode = $this->allowedModes[0] === $this->mode ? $this->allowedModes[1] : $this->allowedModes[0];
         }
     }
+    public $recentTransactions = [];
     public function loadStatistics()
     {
         $this->totalTransaksi = $this->product->transactions()->count();
-        $this->transaksiTerbaru = $this->product->transactions()->latest()->first();
+
+        // Change this line - get count of recent transactions instead of the object
+        $this->transaksiTerbaru = $this->product
+            ->transactions()
+            ->where('created_at', '>=', now()->subDays(30))
+            ->count();
+
         $this->totalPendapatan = $this->product->transactions()->sum('price') * $this->product->transactions()->sum('quantity');
         $this->stokRendah = $this->product->stock < 10;
     }
@@ -215,37 +231,90 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
     {
         $this->loadStatistics();
     }
-
+    // CAROUSEL FUNCTIONALITY
     public $currentImageIndex = 0;
 
     public function previousImage()
     {
-        if ($this->currentImageIndex > 0) {
-            $this->currentImageIndex--;
-        } else {
-            $this->currentImageIndex = $this->product->images->count() - 1;
-        }
+        $this->currentImageIndex = $this->integerWrapping($this->currentImageIndex - 1, $this->product->images->count() - 1);
     }
 
     public function nextImage()
     {
-        if ($this->currentImageIndex < $this->product->images->count() - 1) {
-            $this->currentImageIndex++;
-        } else {
-            $this->currentImageIndex = 0;
-        }
+        $this->currentImageIndex = $this->integerWrapping($this->currentImageIndex + 1, $this->product->images->count() - 1);
     }
-
+    public function integerWrapping(int $index, int $maxLen)
+    {
+        if ($index < 0) {
+            $index = $maxLen;
+        } elseif ($index >= $maxLen) {
+            $index = 0;
+        }
+        return $index;
+    }
     public function goToImage($index)
     {
-        $this->currentImageIndex = $index;
+        $this->integerWrapping($index, $this->product->images->count() - 1);
     }
+    // ONWER VERIFICATION (IMPORTANT!!!!)
     public function createProduct($id)
     {
-        if (!$this->isOwner) {
+        if (!$this->isOwner()) {
             $this->error('Anda tidak memiliki bisnis ini!');
+            return;
         }
         return redirect()->route('product.add', ['id' => $id]);
+    }
+
+    // Transaksi Produk
+    public $quantity = 1;
+    public $price = 0;
+    public $user_id = null;
+
+    public $users = [];
+    public $availableStock = 0;
+    public function addTransaction()
+    {
+        if (!$this->isOwner()) {
+            $this->error('Anda tidak memiliki izin untuk menambah transaksi');
+            return;
+        }
+        $this->validate($this->transactionRules(), $this->transactionErrors());
+        $quantity = $this->quantity;
+        if ($quantity > $this->product->stock) {
+            $this->error('Stok produk tidak cukup');
+            return;
+        }
+
+        $this->product->transactions()->create([
+            'quantity' => $quantity,
+            'price' => $this->product->price,
+            'user_id' => $this->user_id,
+        ]);
+        $this->product->stock -= $quantity;
+        $this->product->save();
+        $this->success('Transaksi produk berhasil ditambahkan');
+        $this->muatUlang();
+    }
+    public function transactionRules()
+    {
+        return [
+            'quantity' => ['required', 'integer', 'min:1'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'user_id' => ['nullable', 'exists:users,id'],
+        ];
+    }
+    public function transactionErrors()
+    {
+        return [
+            'quantity.required' => 'Jumlah produk wajib diisi.',
+            'quantity.integer' => 'Jumlah produk harus berupa angka.',
+            'quantity.min' => 'Jumlah produk minimal adalah 1.',
+            'price.required' => 'Harga produk wajib diisi.',
+            'price.numeric' => 'Harga produk harus berupa angka.',
+            'price.min' => 'Harga produk minimal adalah 0.',
+            'user_id.exists' => 'Pengguna tidak ditemukan.',
+        ];
     }
 };
 
@@ -255,7 +324,7 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
 {{-- resources/views/livewire/statistik-product.blade.php --}}
 <div>
     <x-card shadow separator class="mb-6">
-        @if ($this->isOwner)
+        @if ($this->isOwner())
             <x-slot:menu>
                 <x-button icon="o-shopping-bag" wire:click="toTransaction" spinner class="btn-primary btn-md"
                     tooltip-bottom="" label="Transaksi" />
@@ -264,6 +333,7 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
 
             </x-slot:menu>
         @endif
+       
         {{-- Kartu Statistik Produk --}}
         @if ($this->mode === 'view')
 
@@ -298,7 +368,7 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
                 <div>
                     <p class="text-sm text-gray-500">Stok Saat Ini</p>
                     <p class="text-2xl font-bold flex items-center gap-2">
-                        {{ number_format($product->stock, 0, ',', '.') }}
+                        {{ number_format($this->product->stock ?? 0, 0, ',', '.') }}
                         @if ($stokRendah)
                             <x-badge value="Rendah" class="badge-warning badge-sm" />
                         @endif
@@ -307,30 +377,42 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
 
                 <div>
                     <p class="text-sm ">Harga</p>
-                    <p class="text-2xl font-bold">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+                    <p class="text-2xl font-bold">Rp {{ number_format($product->price ?? 0, 0, ',', '.') }}</p>
                 </div>
 
                 <div>
                     <p class="text-sm ">Total Transaksi</p>
-                    <p class="text-2xl font-bold">{{ number_format($totalTransaksi, 0, ',', '.') }}</p>
+                    <p class="text-2xl font-bold">{{ number_format($totalTransaksi ?? 0, 0, ',', '.') }}</p>
                 </div>
 
                 <div>
                     <p class="text-sm ">Total Pendapatan</p>
-                    <p class="text-2xl font-bold">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</p>
+                    <p class="text-2xl font-bold">Rp {{ number_format($totalPendapatan ?? 0, 0, ',', '.') }}</p>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <x-badge value="Deskripsi" class="badge-ghost" />
+                        <x-icon name="o-document-text" class="w-5 h-5 text-base-content/50" />
+                    </div>
+
+                    <div class="prose prose-sm max-w-none">
+                        <p class="text-base-content/80">
+                            {{ $this->product->business->description }}
+                        </p>
+                    </div>
                 </div>
             </div>
 
             {{-- Statistik Detail --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <x-stat title="Transaksi 30 Hari" value="{{ number_format($transaksiTerbaru, 0, ',', '.') }}"
+                <x-stat title="Transaksi 30 Hari" value="{{ number_format($transaksiTerbaru ?? 0, 0, ',', '.') }}"
                     icon="o-arrow-trending-up" description="Terakhir 30 hari" />
 
                 <x-stat title="Status Stok" :value="$stokRendah ? 'Stok Rendah' : 'Stok Aman'" :icon="$stokRendah ? 'o-exclamation-triangle' : 'o-check-circle'" :value-class="$stokRendah ? 'text-warning' : 'text-success'"
                     description="{{ $product->stock }} unit tersedia" />
 
                 <x-stat title="Rata-rata Pendapatan"
-                    value="Rp {{ $totalTransaksi > 0 ? number_format($totalPendapatan / $totalTransaksi, 0, ',', '.') : '0' }}"
+                    value="Rp {{ $totalTransaksi > 0 ? number_format($totalPendapatan / $totalTransaksi ?? 0, 0, ',', '.') : '0' }}"
                     icon="o-banknotes" description="Per transaksi" />
             </div>
 
@@ -341,15 +423,15 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="bg-base-100 p-4 rounded-lg border">
                         <p class="text-sm text-gray-500">Total Transaksi</p>
-                        <p class="text-xl font-bold">{{ number_format($totalTransaksi, 0, ',', '.') }}</p>
+                        <p class="text-xl font-bold">{{ number_format($totalTransaksi ?? 0, 0, ',', '.') }}</p>
                     </div>
                     <div class="bg-base-100 p-4 rounded-lg border">
                         <p class="text-sm text-gray-500">Total Pendapatan</p>
-                        <p class="text-xl font-bold">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</p>
+                        <p class="text-xl font-bold">Rp {{ number_format($totalPendapatan ?? 0, 0, ',', '.') }}</p>
                     </div>
                     <div class="bg-base-100 p-4 rounded-lg border">
                         <p class="text-sm text-gray-500">Transaksi 30 Hari</p>
-                        <p class="text-xl font-bold">{{ number_format($transaksiTerbaru, 0, ',', '.') }}</p>
+                        <p class="text-xl font-bold">{{ number_format($transaksiTerbaru ?? 0, 0, ',', '.') }}</p>
                     </div>
                 </div>
             </div>
@@ -366,7 +448,7 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
                                     alt="Business Image {{ $currentImageIndex + 1 }}"
                                     class="max-w-full max-h-full object-contain">
 
-                                @if ($isOwner)
+                                @if ($this->isOwner())
                                     <div class="absolute top-4 right-4">
                                         <x-button icon="o-trash"
                                             wire:click="removeExistingImage({{ $product->images[$currentImageIndex]->id }})"
@@ -423,6 +505,79 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
 
                 </div>
             </div>
+
+            {{-- Recent Transactions Table --}}
+            @if ($this->recentTransactions->isNotEmpty())
+                <x-card title="{{ $this->recentTransactionAmount }} Transaksi Terbaru" separator shadow class="mt-6">
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Tanggal</th>
+                                    <th class="text-left">Pelanggan</th>
+                                    <th class="text-left">Jumlah</th>
+                                    <th class="text-left">Harga Satuan</th>
+                                    <th class="text-left">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($this->recentTransactions as $transaction)
+                                    <tr>
+                                        <td class="whitespace-nowrap">
+                                            {{ $transaction->created_at->format('d/m/Y H:i') }}
+                                        </td>
+                                        <td class="whitespace-nowrap">
+                                            @if ($transaction->user)
+                                                <div class="flex items-center gap-2">
+                                                    <x-avatar :image="$transaction->user->profile_photo_url ?? null" :initials="substr($transaction->user->name, 0, 2)" class="w-6 h-6" />
+                                                    <span>{{ $transaction->user->name }}</span>
+                                                </div>
+                                            @else
+                                                <span class="text-gray-500">Anonim</span>
+                                            @endif
+                                        </td>
+                                        <td class="whitespace-nowrap">
+                                            {{ number_format($transaction->quantity, 0, ',', '.') }} unit
+                                        </td>
+                                        <td class="whitespace-nowrap">
+                                            Rp {{ number_format($transaction->price, 0, ',', '.') }}
+                                        </td>
+                                        <td class="whitespace-nowrap font-semibold">
+                                            Rp
+                                            {{ number_format($transaction->quantity * $transaction->price, 0, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            @if ($this->totalTransaksi > $this->recentTransactionAmount)
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-sm text-gray-500 pt-4">
+                                            Menampilkan {{ $this->recentTransactionAmount }} dari
+                                            {{ number_format($this->totalTransaksi, 0, ',', '.') }}
+                                            transaksi
+                                            <x-button
+                                                wire:click="$dispatch('openModal', { component: 'transactions.modal', arguments: { productId: {{ $product->id }} } })"
+                                                class="btn-link btn-sm ml-2" label="Lihat Semua" />
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            @endif
+                        </table>
+                    </div>
+
+                    @if ($this->totalTransaksi === 0)
+                        <div class="text-center py-8">
+                            <x-icon name="o-receipt-percent" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                            <p class="text-gray-500">Belum ada transaksi untuk produk ini</p>
+                            @if ($this->isOwner())
+                                <x-button wire:click="toTransaction" icon="o-plus" class="btn-primary btn-sm mt-4"
+                                    label="Buat Transaksi Pertama" />
+                            @endif
+                        </div>
+                    @endif
+                </x-card>
+            @endif
         @elseif ($this->mode === 'edit')
             {{-- Header dengan Info Produk --}}
             <x-slot:title>
@@ -445,7 +600,7 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
 
             {{-- Tombol Kembali --}}
             <x-slot:menu>
-                <x-button icon="o-arrow-left" link="{{ route('products.show', $product) }}" class="btn-ghost btn-sm"
+                <x-button icon="o-arrow-left" wire:click="cancel" class="btn-ghost btn-sm"
                     tooltip-bottom="Kembali ke detail" />
             </x-slot:menu>
 
@@ -470,7 +625,7 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
 
             {{-- Tombol Kembali --}}
             <x-slot:menu>
-                <x-button icon="o-arrow-left" link="{{ route('products.show', $product) }}" class="btn-ghost btn-sm"
+                <x-button icon="o-arrow-left" wire:click="cancel" class="btn-ghost btn-sm"
                     tooltip-bottom="Kembali ke detail" />
             </x-slot:menu>
 
@@ -605,6 +760,160 @@ new #[Layout('components.layouts.app')] #[Title('Welcome')] class extends Compon
                         <x-button type="button" wire:click="cancel" class="btn-ghost" label="Batal" />
                         <x-button type="submit" icon="o-check" spinner class="btn-primary"
                             label="Simpan Perubahan" />
+                    </div>
+                </div>
+            </form>
+        @elseif($this->mode === 'transaction')
+            <x-slot:title>
+                <div class="flex items-center gap-4">
+                    @php
+                        $productImage = $product->images->first();
+                    @endphp
+                    @if ($productImage)
+                        <x-avatar image="{{ $productImage->path }}" class="w-16 h-16 rounded-lg" />
+                    @else
+                        <x-avatar initials="{{ substr($product->name, 0, 2) }}"
+                            class="w-16 h-16 rounded-lg bg-base-200" />
+                    @endif
+                    <div>
+                        <h2 class="text-xl font-bold">Transaksi Baru</h2>
+                        <p class="text-sm text-gray-500">Untuk produk: {{ $product->name }}</p>
+                    </div>
+                </div>
+            </x-slot:title>
+
+            <!-- Action Buttons in Menu -->
+            <x-slot:menu>
+                <x-button icon="o-arrow-left" wire:click="cancel" class="btn-ghost btn-sm"
+                    tooltip-bottom="Kembali ke detail produk" />
+            </x-slot:menu>
+
+            <!-- Product Summary Section -->
+            <div class="mb-8">
+                <h3 class="font-semibold mb-4 text-lg">Ringkasan Produk</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-base-100 p-4 rounded-lg border">
+                        <p class="text-sm text-gray-500">Stok Tersedia</p>
+                        <p class="text-xl font-bold">{{ number_format($stock ?? 0, 0, ',', '.') }} unit</p>
+                    </div>
+                    <div class="bg-base-100 p-4 rounded-lg border">
+                        <p class="text-sm text-gray-500">Harga Default</p>
+                        <p class="text-xl font-bold">Rp {{ number_format($product->price ?? 0, 0, ',', '.') }}</p>
+                    </div>
+                    <div class="bg-base-100 p-4 rounded-lg border">
+                        <p class="text-sm text-gray-500">ID Produk</p>
+                        <p class="text-xl font-bold">{{ $product->id }}</p>
+                    </div>
+                </div>
+
+                @if ($product->description)
+                    <div class="mt-4 p-3 bg-base-200 rounded-lg">
+                        <p class="text-sm text-gray-500 mb-1">Deskripsi:</p>
+                        <p>{{ $product->description }}</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Transaction Form -->
+            <form wire:submit="addTransaction">
+                <div class="space-y-6">
+                    <!-- Form Grid Layout -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Quantity Input -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Jumlah *</span>
+                            </label>
+                            <x-input wire:model.live="quantity" type="number" min="1"
+                                placeholder="Masukkan jumlah" class="input-bordered" />
+                            @if ($stock > 0)
+                                <label class="label">
+                                    <span class="label-text-alt">Tersedia:
+                                        {{ number_format($stock ?? 0, 0, ',', '.') }}
+                                        unit</span>
+                                </label>
+                            @endif
+                            @error('quantity')
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
+                            @enderror
+                        </div>
+
+                        <!-- Price Input -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Harga per Unit (Rp) *</span>
+                            </label>
+                            <x-input disabled wire:model="price" type="number" min="0"
+                                placeholder="Masukkan harga" class="input-bordered" />
+                            <label class="label">
+                                <span class="label-text-alt">Default: Rp
+                                    {{ number_format($product->price ?? 0, 0, ',', '.') }}</span>
+                            </label>
+                            @error('price')
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
+                            @enderror
+                        </div>
+
+                        <!-- Customer Selection -->
+                        <div class="md:col-span-2">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Pelanggan (Opsional)</span>
+                                </label>
+                                <select wire:model="user_id" class="select select-bordered w-full">
+                                    <option value="">Pilih pelanggan...</option>
+                                    @foreach ($this->users as $user)
+                                        <option value="{{ $user->id }}">{{ $user->name }}
+                                            ({{ $user->email }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <label class="label">
+                                    <span class="label-text-alt">Kosongkan untuk transaksi anonim</span>
+                                </label>
+                                @error('user_id')
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ $message }}</span>
+                                    </label>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Calculation -->
+                    <div class="divider my-4"></div>
+                    <div class="bg-base-200 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-3">Ringkasan Transaksi</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Jumlah Barang</p>
+                                <p class="text-lg font-semibold">{{ number_format($quantity ?? 0, 0, ',', '.') }} unit
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Harga per Unit</p>
+                                <p class="text-lg font-semibold">Rp {{ number_format($price ?? 0, 0, ',', '.') }}</p>
+                            </div>
+                            <div class="col-span-2 pt-3 border-t">
+                                <div class="flex justify-between items-center">
+                                    <p class="text-lg font-semibold">Total</p>
+                                    <p class="text-2xl font-bold text-primary">
+                                        Rp {{ number_format($this->quantity * $this->price ?? 0, 0, ',', '.') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end gap-3 pt-6 border-t">
+                        <x-button type="button" wire:click="cancel" class="btn-ghost" label="Batal" />
+                        <x-button type="submit" icon="o-check" spinner class="btn-primary"
+                            label="Simpan Transaksi" />
                     </div>
                 </div>
             </form>
